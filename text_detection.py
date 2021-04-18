@@ -1,9 +1,7 @@
 import cv2
 
-
 ratio_x = 0.08
 ratio_y = 1.1
-
 
 def text_detect(img,ele_size=(23,15)): 
    
@@ -16,7 +14,7 @@ def text_detect(img,ele_size=(23,15)):
 
     contours, hierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
-    Rectangle = [cv2.boundingRect(i) for i in contours if i.shape[0]>100 and i.shape[0] < 500]
+    Rectangle = [cv2.boundingRect(i) for i in contours if i.shape[0]>80 and i.shape[0] < 500 and (i.shape[1] / i.shape[0]) <2]
     rect = [(int(i[0]-i[2]*ratio_x),int(i[1]-i[3]*ratio_x),int(i[0]+i[2]*ratio_y),int(i[1]+i[3]*ratio_y)) for i in Rectangle]
     
     return rect
