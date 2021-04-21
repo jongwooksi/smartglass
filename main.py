@@ -15,8 +15,8 @@ cap.set(cv2.CAP_PROP_FRAME_WIDTH, W_View_size)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, H_View_size)
 cap.set(cv2.CAP_PROP_FPS,10)
 
-stage = 4
-visible = [True, True, True, False, True]
+stage = -1
+visible = [True, True, True, True, True]
 
 def classificationPage(page):
     if len(page) > 0:
