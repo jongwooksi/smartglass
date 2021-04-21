@@ -15,6 +15,23 @@ cap.set(cv2.CAP_PROP_FRAME_WIDTH, W_View_size)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, H_View_size)
 cap.set(cv2.CAP_PROP_FPS,10)
 
+def classificationPage(page):
+    if len(page) > 0:
+        page = page.replace(" ","")
+        page = page[0:3]
+
+        if page =="승차권" or page == "차권예" or page == "권예매":
+            print("승차권 예매 page")
+
+        elif page =="열차조":
+            print("열차 조회 page")
+    
+        elif page =="로그인":
+            print("로그인 page")
+
+        elif page == "비회원":
+            print("비회원 page")
+
 
 while cap.isOpened():
   
@@ -53,39 +70,15 @@ while cap.isOpened():
         
         phone_img = img2[phone_box[1]:phone_box[3], phone_box[0]:phone_box[2]]
 
-        rect = text_detect(phone_img)
+        rect = textDetect(phone_img)
         
         for i in rect:
             cv2.rectangle(phone_img,i[:2],i[2:],(0,0,255))
 
-        if len(rect) > 0:
-            up_rect = rect[len(rect)-1]
-            up_rect = [0 if value < 0  else value for value in up_rect ] 
-           
-            cv2.rectangle(phone_img,(up_rect[0],up_rect[1]),(up_rect[2],up_rect[3]),(255,0,0))
+        page = textPage(rect, phone_img)
 
-            menuimage = phone_img[up_rect[1]:up_rect[3], up_rect[0]:up_rect[2]]
-            cv2.imshow("menuimage",menuimage )
-
-
-            text = pytesseract.image_to_string(menuimage, lang='kor') 
-            
-            if text[0] == "승":
-                print("main page")
-                print(up_rect)
-                print(text)
-
-            elif text[0] == "열":
-                print("second page")
-                print(text)
-
-            elif text[0] == "로":
-                print("third page")
-                print(text)
-
-
-        cv2.imshow("menu", phone_img)
-
+        classificationPage(page)
+        
     
     cv2.imshow("img", img)
     
