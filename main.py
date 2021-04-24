@@ -6,7 +6,7 @@ from hand_detection import *
 from text_detection import *
 import numpy as np
 import pytesseract
-
+ 
 cap = cv2.VideoCapture(1)
 W_View_size = 640
 H_View_size = int(W_View_size / 1.333)
