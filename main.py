@@ -15,6 +15,7 @@ cap.set(cv2.CAP_PROP_FRAME_WIDTH, W_View_size)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, H_View_size)
 cap.set(cv2.CAP_PROP_FPS,10)
 
+distance_size = W_View_size * H_View_size / 2.5
 stage = -1
 visible = [True, True, True, True, True]
 
@@ -28,7 +29,7 @@ def classificationPage(page):
         else:
             page = page[0:3]
           
-        print(page)
+        #print(page)
         if page =="승차권" or page == "차권예" or page == "권예매":
             stage = 1
             print("승차권 예매 page")
@@ -85,6 +86,14 @@ def drawRectangle(rect, phone_img):
 
     return phone_img
 
+def distanceRecognition(area):
+    if area < distance_size:
+        print("가까이 더 가까이 ~")
+        return True
+
+    else: return False    
+
+
 while cap.isOpened():
   
     _, img = cap.read()
@@ -109,13 +118,11 @@ while cap.isOpened():
         height = phone_box[3]-phone_box[1]
         area = width * height
 
-        if area < (W_View_size * H_View_size / 2.5):
-            print("가까이 더 가까이 ~")
+        if distanceRecognition(area):
             cv2.imshow("img", img)
             continue
-
-
-        img, img2 = hand(img, img2)
+        
+        img, img2, position = hand(img, img2) 
 
         phone_img = img2[phone_box[1]:phone_box[3], phone_box[0]:phone_box[2]]
 
@@ -126,7 +133,9 @@ while cap.isOpened():
         page = textPage(rect, phone_img)
 
         classificationPage(page)
-        
+
+        textButtonRecognition(position, rect, phone_img)
+
     
     cv2.imshow("img", img)
     

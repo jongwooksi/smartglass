@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 
+minhull = []
 
 def skinmask(img):
     
@@ -59,6 +60,7 @@ def hand(img,img2):
     hull = getcnthull(mask_img) 
 
     if hull is not "None": 
+        global minhull
         minhull = getminhull(hull)
         
         #cv2.drawContours(img, [contours], -1, (255,255,0), 2)
@@ -67,4 +69,4 @@ def hand(img,img2):
         #defects = getdefects(contours)
         img = cv2.circle(img, (minhull[0][0], minhull[0][1]), 4, [0, 0, 255], -1)
             
-    return img, img2
+    return img, img2, minhull

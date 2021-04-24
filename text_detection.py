@@ -21,7 +21,7 @@ def textDetect(img,ele_size=(23,15)):
 
 
 def textPage(rect, phone_img):
-    if len(rect) > 0:
+    if not rect == None:
         text = ""
 
         for i in range(len(rect)-1, 0,-1):
@@ -50,3 +50,35 @@ def textPage(rect, phone_img):
         return text
 
         
+def textButton(rect, phone_img):
+    
+        text = ""
+
+        buttonimage = phone_img[rect[1]:rect[3], rect[0]:rect[2]]
+
+        text = pytesseract.image_to_string(buttonimage, lang='kor') 
+
+        #cv2.imshow("menu", buttonimage)
+            
+        return text
+
+def textButtonRecognition(position, rect, phone_img):
+    if not len(position) == 0:
+        print("End of Hand {}".format(position))
+
+        button = []
+        rect.sort()     
+        for rec in rect:
+            if rec[0] < position[0][0] and rec[2] > position[0][0] :
+                if rec[1] < position[0][1] and rec[3] > position[0][1] :
+                    button = rec 
+                    
+        if not len(button) == 0:
+            cv2.rectangle(phone_img,(button[0],button[1]),(button[2],button[3]),(255,0,255))
+            buttonText = textButton(button, phone_img)
+            print(buttonText)
+            return img
+
+
+
+     
