@@ -29,7 +29,6 @@ def classificationPage(page):
         else:
             page = page[0:3]
           
-        #print(page)
         if page =="승차권" or page == "차권예" or page == "권예매":
             stage = 1
             print("승차권 예매 page")
