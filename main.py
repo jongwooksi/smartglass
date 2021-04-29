@@ -16,8 +16,11 @@ cap.set(cv2.CAP_PROP_FRAME_HEIGHT, H_View_size)
 cap.set(cv2.CAP_PROP_FPS,10)
 
 distance_size = W_View_size * H_View_size / 2.5
-stage = -1
+stage = 0
 visible = [True, True, True, True, True]
+button_check = [False, False]
+pos_button = []
+buttonFlag = True
 
 def classificationPage(page):
     if len(page) > 0:
@@ -58,25 +61,32 @@ def classificationPage(page):
 
 def printNotice():
     global stage
+    global buttonFlag
+
     if stage == 1 and visible[stage-1] == True:
         print("출발, 목적지 및 날짜를 선택하고 우측 하단의 열차 조회하기를 누르세요.")
         visible[stage-1] = False
+        buttonFlag == True
 
     elif stage == 2 and visible[stage-1] == True:
         print("예매할 열차의 우측에 일반실 금액을 선택하하고 예매를 누르세요.")
         visible[stage-1] = False
+        buttonFlag == True
 
     elif stage == 3 and visible[stage-1] == True:
         print("하단의 비회원을 누르세요.")
         visible[stage-1] = False
+        buttonFlag == True
 
     elif stage == 4 and visible[stage-1] == True:
         print("정보를 입력하고 완료 버튼을 누르세요.")
         visible[stage-1] = False
+        buttonFlag == True
 
     elif stage == 5 and visible[stage-1] == True:
         print("예매 정보를 확인하고 결제하기 버튼을 누르세요.")
         visible[stage-1] = False
+        buttonFlag == True
 
 
 def drawRectangle(rect, phone_img):
@@ -94,7 +104,7 @@ def distanceRecognition(area):
 
 
 while cap.isOpened():
-  
+
     _, img = cap.read()
     img2 = copy.deepcopy(img)
     bbox, label, conf = cv.detect_common_objects(img)
@@ -122,19 +132,31 @@ while cap.isOpened():
             continue
         
         img, img2, position = hand(img, img2) 
-
+        
         phone_img = img2[phone_box[1]:phone_box[3], phone_box[0]:phone_box[2]]
 
         rect = textDetect(phone_img)
         
         phone_img = drawRectangle(rect, phone_img)
 
-        page = textPage(rect, phone_img)
+        if stage == 0:
+            page = textPage(rect, phone_img)
+            classificationPage(page)
+        else:
+            if buttonFlag == True:
+                button = textButtonRecognition(position, rect, phone_img)
+                if not len(button) == 0:
+                    pos_button = button
 
-        classificationPage(page)
+                if len(pos_button) > 0 and checkHandPoint(position, pos_button ):
+                    buttonFlag = False
+                    print("pushed button")
 
-        textButtonRecognition(position, rect, phone_img)
+            else:
+                page = textPage(rect, phone_img)
+                classificationPage(page)
 
+    
     
     cv2.imshow("img", img)
     
