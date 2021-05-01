@@ -1,165 +1,148 @@
 import cv2
-import cvlib as cv
-import copy
-from cvlib.object_detection import draw_bbox
 from hand_detection import *
 from text_detection import *
+from phone_detection import *
 import numpy as np
 import pytesseract
  
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 W_View_size = 640
 H_View_size = int(W_View_size / 1.333)
 
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, W_View_size)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, H_View_size)
-cap.set(cv2.CAP_PROP_FPS,10)
+cap.set(cv2.CAP_PROP_FPS,5)
 
 distance_size = W_View_size * H_View_size / 2.5
-stage = 0
+stage = 0 # init = 0
 visible = [True, True, True, True, True]
-button_check = [False, False]
 pos_button = []
-buttonFlag = True
+buttonFlag = False
 
-def classificationPage(page):
-    if len(page) > 0:
-        global stage
-        page = page.replace(" ","")
-
-        if stage == 4 and visible[stage-1] == False:
-            page = page[0:4]    
-        else:
-            page = page[0:3]
-          
-        if page =="승차권" or page == "차권예" or page == "권예매":
-            stage = 1
-            print("승차권 예매 page")
-            printNotice()
-
-        elif page =="열차조":
-            print("열차 조회 page")
-            stage = 2
-            printNotice()
-
-        elif page =="로그인":
-            print("로그인 page")
-            stage = 3
-            printNotice()
-
-        elif page == "비회원":
-            print("비회원 page")
-            stage = 4
-            printNotice()
-
-        elif page =="예약취소" or page == "승차권정" or page == "차권정보"or page == "권정보확" or page == "정보확인":
-            print("승차권정보확인 page")
-            stage = 5
-            printNotice()
-  
-    
-
-def printNotice():
-    global stage
-    global buttonFlag
-
-    if stage == 1 and visible[stage-1] == True:
-        print("출발, 목적지 및 날짜를 선택하고 우측 하단의 열차 조회하기를 누르세요.")
-        visible[stage-1] = False
-        buttonFlag == True
-
-    elif stage == 2 and visible[stage-1] == True:
-        print("예매할 열차의 우측에 일반실 금액을 선택하하고 예매를 누르세요.")
-        visible[stage-1] = False
-        buttonFlag == True
-
-    elif stage == 3 and visible[stage-1] == True:
-        print("하단의 비회원을 누르세요.")
-        visible[stage-1] = False
-        buttonFlag == True
-
-    elif stage == 4 and visible[stage-1] == True:
-        print("정보를 입력하고 완료 버튼을 누르세요.")
-        visible[stage-1] = False
-        buttonFlag == True
-
-    elif stage == 5 and visible[stage-1] == True:
-        print("예매 정보를 확인하고 결제하기 버튼을 누르세요.")
-        visible[stage-1] = False
-        buttonFlag == True
+def checkSize(data):
+    if len(data) > 0: return True
+    else : return False
 
 
 def drawRectangle(rect, phone_img):
     for i in rect:
         cv2.rectangle(phone_img,i[:2],i[2:],(0,0,255))
 
-    return phone_img
 
-def distanceRecognition(area):
-    if area < distance_size:
-        print("가까이 더 가까이 ~")
-        return True
+def classificationPage(page):
+    if checkSize(page):
+        global stage
+        page = page.replace(" ","")
 
-    else: return False    
+        if stage == 4 and visible[stage-1] == False:
+            page = page[0:4]    
+        else:
+            page = page[0:2]
+          
+        if page =="승차" or page == "차권" or page == "권예" or page == "예매" or page == "슴자":
+            stage = 1
+            printNotice()
+
+        elif page =="열차" or page =="차조" or page =="조회" or page == "열자":
+            stage = 2
+            printNotice()
+
+        elif page =="로그": 
+            stage = 3
+            printNotice()
+
+        elif page == "비회":
+            stage = 4
+            printNotice()
+
+        elif page =="예약취소" or page == "승차권정" or page == "차권정보"or page == "권정보확" or page == "정보확인":
+            stage = 5
+            printNotice()
+  
+    
+def printNotice():
+    global stage
+    global buttonFlag
+
+    if stage == 1 and visible[stage-1] == True:
+        print("승차권 예매 page")
+        print("출발, 목적지 및 날짜를 선택하고 우측 하단의 열차 조회하기를 누르세요.")
+        visible[stage-1] = False
+        buttonFlag = True
+
+    elif stage == 2 and visible[stage-1] == True:
+        print("열차 조회 page")
+        print("예매할 열차의 우측에 일반실 금액을 선택하고 예매를 누르세요.")
+        visible[stage-1] = False
+        buttonFlag = True
+
+    elif stage == 3 and visible[stage-1] == True:
+        print("로그인 page")
+        print("하단의 비회원을 누르세요.")
+        visible[stage-1] = False
+        buttonFlag = True
+
+    elif stage == 4 and visible[stage-1] == True:
+        print("비회원 page")
+        print("정보를 입력하고 완료 버튼을 누르세요.")
+        visible[stage-1] = False
+        buttonFlag = True
+
+    elif stage == 5 and visible[stage-1] == True:
+        print("승차권정보확인 page")
+        print("예매 정보를 확인하고 결제하기 버튼을 누르세요.")
+        visible[stage-1] = False
+        buttonFlag = True
+
 
 
 while cap.isOpened():
 
     _, img = cap.read()
-    img2 = copy.deepcopy(img)
-    bbox, label, conf = cv.detect_common_objects(img)
-
     
-    if label.count('cell phone') > 0 or label.count('remote') > 0:
-        index = -1
+    bbox, label, conf = detectPhone(img)
 
-        if label.count('cell phone') > 0:
-            index = label.index('cell phone')
-        elif label.count('remote') > 0:
-            index = label.index('remote')
+    if checkPhoneDetection(label):
+    
+        index = setPhoneLabel(label)
+    
+        phone_box = modifyCord(bbox[index])
 
-        phone_box = bbox[index]
-        phone_box = [0 if value < 0  else value for value in phone_box ] 
+        width, height, area = getInformBox(phone_box)
 
-        img = draw_bbox(img, [ bbox[index]], [label[index]], [conf[index]]) 
-
-        width = phone_box[2]-phone_box[0]
-        height = phone_box[3]-phone_box[1]
-        area = width * height
-
-        if distanceRecognition(area):
-            cv2.imshow("img", img)
+        if distanceRecognition(area, distance_size):
             continue
         
-        img, img2, position = hand(img, img2) 
-        
-        phone_img = img2[phone_box[1]:phone_box[3], phone_box[0]:phone_box[2]]
+        phone_img = getPhoneImage(img,phone_box)
 
+        position = handPointDetection(phone_img) 
+        
         rect = textDetect(phone_img)
-        
-        phone_img = drawRectangle(rect, phone_img)
 
-        if stage == 0:
-            page = textPage(rect, phone_img)
+        if stage == 0 or buttonFlag == False:
+            page = textPage(rect, phone_img,stage)
             classificationPage(page)
+
         else:
-            if buttonFlag == True:
-                button = textButtonRecognition(position, rect, phone_img)
-                if not len(button) == 0:
-                    pos_button = button
+            button = textButtonRecognition(rect, phone_img, stage)
 
-                if len(pos_button) > 0 and checkHandPoint(position, pos_button ):
+            if checkSize(button):
+                pos_button = button
+
+            if checkSize(pos_button):
+                drawHandPoint(pos_button, phone_img)
+
+            if checkSize(position) and checkSize(pos_button):
+                if checkHandPoint(position, pos_button, phone_img):
                     buttonFlag = False
-                    print("pushed button")
+                    pos_button = []
+                    print("Pushed button")
 
-            else:
-                page = textPage(rect, phone_img)
-                classificationPage(page)
-
-    
-    
-    cv2.imshow("img", img)
-    
+            if checkSize(position):
+                cv2.circle(phone_img, (position[0][0], position[0][1]), 4, [0, 0, 255], -1)
+                cv2.imshow("phone", phone_img)
+ 
+            
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
   

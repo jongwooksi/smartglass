@@ -4,6 +4,10 @@ import pytesseract
 ratio_x = 0.08
 ratio_y = 1.1
 
+def modifyCord(cord):
+    return [0 if value < 0  else value for value in cord ]
+
+
 def textDetect(img,ele_size=(23,15)): 
    
     img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
@@ -20,9 +24,9 @@ def textDetect(img,ele_size=(23,15)):
     
     return rect
 
+
 def checkBox(rect):
-    up_rect = rect
-    up_rect = [0 if value < 0  else value for value in up_rect ] 
+    up_rect = modifyCord(rect)
 
     width_up = up_rect[2] - up_rect[0]
     height_up = up_rect[3] - up_rect[1]
@@ -33,7 +37,7 @@ def checkBox(rect):
     return up_rect, width_up, height_up, area_up, ratio_up
 
 
-def textPage(rect, phone_img):
+def textPage(rect, phone_img,stage):
     if not rect == None:
         text = ""
 
@@ -41,13 +45,12 @@ def textPage(rect, phone_img):
             
             up_rect, width_up, height_up, area_up, ratio_up = checkBox(rect[i])
 
-            if (ratio_up > 4.5) or (ratio_up < 2) or area_up < 500 or height_up < 10:
+            if pageButtonArea(width_up, height_up, area_up, ratio_up, stage) :
                 continue
 
             cv2.rectangle(phone_img,(up_rect[0],up_rect[1]),(up_rect[2],up_rect[3]),(255,0,0))
 
             text = textButton(up_rect, phone_img)
-
             break
 
         cv2.imshow("phone", phone_img)
@@ -55,90 +58,77 @@ def textPage(rect, phone_img):
     
     else: return ""
         
-def textButton(rect, phone_img):
-    
-    buttonimage = phone_img[rect[1]:rect[3], rect[0]:rect[2]]
-  
-    return pytesseract.image_to_string(buttonimage, lang='kor') 
 
-def textButtonRecognition(position, rect, phone_img):
+def textButton(rect, phone_img):
+    buttonimage = phone_img[rect[1]:rect[3], rect[0]:rect[2]]
+    text = pytesseract.image_to_string(buttonimage, lang='kor')
+
+    return text.replace(" ","")
+
+
+def textButtonRecognition(rect, phone_img, stage):
     if not rect == None:
         p_button = []
-        flag = False
         
-        for i in range(len(rect)-1, 0,-1):
+        for i in range(len(rect)):
             button, width_up, height_up, area_up, ratio_up = checkBox(rect[i])
             
-            if (ratio_up < 4) or (ratio_up> 6) or area_up < 1000 or height_up < 20:
+            if buttonArea(width_up, height_up, area_up, ratio_up, stage):
                 continue
-
-            cv2.rectangle(phone_img,(button[0],button[1]),(button[2],button[3]),(255,0,0))
 
             if not len(button) == 0:
                 cv2.rectangle(phone_img,(button[0],button[1]),(button[2],button[3]),(255,0,255))
                 buttonText = textButton(button, phone_img)
-                
-            if checkButtonText(buttonText):
+
+            if checkButtonText(buttonText,stage):
                 p_button = button
-                print(buttonText)
                 break
 
-        cv2.imshow("button", phone_img)
+        cv2.imshow("phone", phone_img)
         return p_button
     
     else: return []
 
 
-def checkButtonText(button):
-    button = button.replace(" ","")
-
+def checkButtonText(button,stage):
     button = button[0:2]
 
-    if button == "열차" or button == "조회"or button == "하기":
-        return True
-
-    else:
-        return False
-
-
-def checkHandPoint(position, rec):
-    errorArea = 20
-
-
-    if rec[0] < position[0][0]+errorArea and rec[2] > position[0][0]-errorArea :
-        if rec[1] < position[0][1]+errorArea and rec[3] > position[0][1]-errorArea :
-            return True
-
+    if stage == 1:     
+        if button == "열차" or button == "조회" or button == "별차" or button == "열자": return True
+    elif stage == 2:
+        if button == "예매": return True
+    elif stage == 3:
+        if button == "비회" or button == "비희" or button == "회원" : return True
+    elif stage == 4: 
+        if button == "확인": return True
+    elif stage == 5: 
+         return True # insert code!!
     else : return False
 
 
-'''
-def textButtonRecognition(position, rect, phone_img):
-    if not len(position) == 0 :
-        if not position[0][1] == 0 : 
-            print("End of Hand {}".format(position)) 
-
-            
-            button = []
-            rect.sort()
-
-            for rec in rect:
-                if rec[0] < position[0][0] and rec[2] > position[0][0] :
-                    if rec[1] < position[0][1] and rec[3] > position[0][1] :
-                        button = rec 
-
-            button = [0 if value < 0  else value for value in button ] 
-
-            print(button)            
-            if not len(button) == 0:
-                cv2.rectangle(phone_img,(button[0],button[1]),(button[2],button[3]),(255,0,255))
-                buttonText = textButton(button, phone_img)
-                print(buttonText)
-
-            cv2.imshow("button", phone_img)    
-            return phone_img
-'''
+def buttonArea(width_up, height_up, area_up, ratio, stage):
+    if stage == 1: 
+        if ratio < 4.5 or ratio > 5.5: return True   
+    elif stage == 2: 
+        if ratio < 1.5 or ratio > 2.5 : return True
+    elif stage == 3: 
+        if ratio < 2 or ratio > 4: return True  
+    elif stage == 4: 
+        if ratio < 2 or ratio > 4: return True 
+    elif stage == 5: 
+         return True # insert code!!
+    else : False
 
 
-
-     
+def pageButtonArea(width_up, height_up, area_up, ratio, stage):
+    if stage == 0:
+        if ratio < 3.5 or ratio > 4.5 or area_up < 500 or height_up < 10 : return True
+    elif stage == 1:
+        if ratio < 1.5 or ratio > 2.5 or area_up < 500 or height_up < 10 : return True
+    elif stage == 2:
+        if ratio < 1 or ratio > 4 or area_up < 500 or height_up < 10 : return True
+    elif stage == 3: 
+        if ratio < 1 or ratio > 4 or area_up < 500 or height_up < 10 : return True
+    elif stage == 4: 
+        return True # insert code!!
+    else : False

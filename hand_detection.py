@@ -1,8 +1,6 @@
 import numpy as np
 import cv2
 
-minhull = []
-
 def skinmask(img):
     
     hsvim = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -15,8 +13,7 @@ def skinmask(img):
     
     return thresh
 
-def getcnthull(mask_img):
-    
+def getcnthull(mask_img): 
     contours, hierarchy = cv2.findContours(mask_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
    
     
@@ -32,20 +29,14 @@ def getcnthull(mask_img):
             hull = cv2.convexHull(contours)
             return hull
 
-def getdefects(contours):
-    hull = cv2.convexHull(contours, returnPoints=False)
-    defects = cv2.convexityDefects(contours, hull)
-    return defects
 
 def getminhull(hull):
-    
     minimum = 9999999
     cord = []
     size = len(hull)
     
 
     for i in range(size):
-
         if hull[i][0][1] < minimum:
             minimum = hull[i][0][1]
            
@@ -54,19 +45,26 @@ def getminhull(hull):
 
     return cord
 
-def hand(img,img2):
-    mask_img = skinmask(img2)
+def handPointDetection(img):
+    mask_img = skinmask(img)
     
     hull = getcnthull(mask_img) 
 
     if hull is not "None": 
-        global minhull
-        minhull = getminhull(hull)
-        
-        #cv2.drawContours(img, [contours], -1, (255,255,0), 2)
-        cv2.drawContours(img, [hull], -1, (0, 255, 255), 2)
-        
-        #defects = getdefects(contours)
-        img = cv2.circle(img, (minhull[0][0], minhull[0][1]), 4, [0, 0, 255], -1)
-            
-    return img, img2, minhull
+        return(getminhull(hull))
+                 
+    else : return []
+
+errorAreaX = 10
+errorAreaY = 20
+
+def checkHandPoint(position, rec, phone_img):
+    if rec[0]-errorAreaX < position[0][0] and rec[2]+errorAreaX > position[0][0] :
+        if rec[1]-errorAreaY < position[0][1] and rec[3]+errorAreaY > position[0][1] :
+            return True
+
+    else : return False
+
+def drawHandPoint(rec, phone_img):
+    cv2.rectangle(phone_img,(rec[0]-errorAreaX,rec[1]-errorAreaY),(rec[2]+errorAreaX,rec[3]+errorAreaY),(0,255,255))
+    cv2.imshow("phone", phone_img)
