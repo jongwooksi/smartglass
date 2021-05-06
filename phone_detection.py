@@ -1,5 +1,6 @@
 import cvlib as cv
 from cvlib.object_detection import draw_bbox
+from output import *
 
 def detectPhone(img):
     return cv.detect_common_objects(img)
@@ -21,7 +22,7 @@ def setPhoneLabel(label):
 
 def distanceRecognition(area, distance_size):
     if area < distance_size:
-        print("Put your cell phone a little closer")
+        speakDistance("Put your cell phone a little closer")
         return True
 
     else: return False    

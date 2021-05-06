@@ -1,0 +1,5 @@
+cvlib==0.2.6
+pyttsx3==2.90
+pytesseract==0.3.7
+numpy==1.18.5
+opencv-python==4.5.1.48

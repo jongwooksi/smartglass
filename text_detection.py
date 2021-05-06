@@ -1,5 +1,6 @@
 import cv2
 import pytesseract
+from output import *
 
 ratio_x = 0.08
 ratio_y = 1.1
@@ -102,7 +103,14 @@ def checkButtonText(button,stage):
     elif stage == 4: 
         if button == "확인": return True
     elif stage == 5: 
-         return True # insert code!!
+        if button == "결제": return True
+    elif stage == 6: 
+        if button == "다음": return True
+    elif stage == 7: 
+        if button == "결제" or button == "발권" : 
+            Speak("결제 완료")
+            return True
+
     else : return False
 
 
@@ -110,25 +118,33 @@ def buttonArea(width_up, height_up, area_up, ratio, stage):
     if stage == 1: 
         if ratio < 4.5 or ratio > 5.5: return True   
     elif stage == 2: 
-        if ratio < 1.5 or ratio > 2.5 : return True
+        if ratio < 1.2 or ratio > 2.2 : return True
     elif stage == 3: 
         if ratio < 2 or ratio > 4: return True  
     elif stage == 4: 
-        if ratio < 2 or ratio > 4: return True 
+        if ratio < 1.5 or ratio > 3: return True 
     elif stage == 5: 
-         return True # insert code!!
+        if ratio < 3 or ratio > 4: return True
+    elif stage == 6: 
+        if ratio < 1 or ratio > 2: return True 
+    elif stage == 7: 
+        if ratio < 3 or ratio > 4: return True 
+           
     else : False
 
 
 def pageButtonArea(width_up, height_up, area_up, ratio, stage):
     if stage == 0:
-        if ratio < 3.5 or ratio > 4.5 or area_up < 500 or height_up < 10 : return True
+        if ratio < 3.2 or ratio > 4 or area_up < 500 or height_up < 10 : return True
     elif stage == 1:
-        if ratio < 1.5 or ratio > 2.5 or area_up < 500 or height_up < 10 : return True
+        if ratio < 2.3 or ratio > 3.2 or area_up < 500 or height_up < 10 : return True
     elif stage == 2:
-        if ratio < 1 or ratio > 4 or area_up < 500 or height_up < 10 : return True
+        if ratio < 1 or ratio > 3 or area_up < 500 or height_up < 10 : return True
     elif stage == 3: 
-        if ratio < 1 or ratio > 4 or area_up < 500 or height_up < 10 : return True
+        if ratio < 1 or ratio > 3 or area_up < 500 or height_up < 10 : return True
     elif stage == 4: 
-        return True # insert code!!
+        if ratio < 5 or ratio > 7 or area_up < 500 or height_up < 10 : return True
+    elif stage == 5: 
+        if ratio < 1 or ratio > 2 or area_up < 500 or height_up < 10 : return True
+
     else : False

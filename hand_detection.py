@@ -55,8 +55,8 @@ def handPointDetection(img):
                  
     else : return []
 
-errorAreaX = 10
-errorAreaY = 20
+errorAreaX = 15
+errorAreaY = 40
 
 def checkHandPoint(position, rec, phone_img):
     if rec[0]-errorAreaX < position[0][0] and rec[2]+errorAreaX > position[0][0] :
